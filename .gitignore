@@ -4,6 +4,7 @@ node_modules/
 *.tmp-*
 *.bak
 *.bak-*
+*.tgz
 
 # OS noise
 .DS_Store
