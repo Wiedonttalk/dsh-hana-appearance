@@ -4,6 +4,12 @@
   "private": true,
   "description": "HanaAgent-flavoured themes, reading fonts and paper textures for DeepSeek Harness, with the HanaUI settings page.",
   "license": "MIT",
+  "author": "Wiedonttalk (https://github.com/Wiedonttalk)",
+  "contributors": [
+    {
+      "name": "DeepSeek Harness (deepseek-flash coding agent, AI)"
+    }
+  ],
   "type": "module",
   "main": "lib/index.js",
   "exports": {

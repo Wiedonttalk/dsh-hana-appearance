@@ -117,6 +117,15 @@ tools/                   构建与冒烟测试脚本
 - DSH 部分组件若绕过 alias token 直接使用内置色，可能局部颜色不统一，需要按截图补 token。
 - 未实现应用图标与桌面启动画面（相关实验代码已移除）。
 
+## 作者与协作
+
+- [Wiedonttalk](https://github.com/Wiedonttalk) —— 项目发起、需求与验收，把 HanaAgent 外观的每个细节对到位。
+- **DeepSeek Harness（deepseek-flash 编码代理，AI）** —— 代码实现：插件架构、11 套主题的 token 映射、
+  settings 页移植、晴天树影渲染、构建与冒烟测试；本仓库的提交历史也是在 DSH 会话里整理并推送的。
+
+> GitHub 右侧的 Contributors 只统计绑定了 GitHub 账号的提交作者，AI 助手没有账号，
+> 因此不会出现在那里，所以单独在这里署名。
+
 ## 致谢与许可
 
 - 设计语言、主题调色板、设置页布局、纸质纹理素材、晴天模式算法来自
