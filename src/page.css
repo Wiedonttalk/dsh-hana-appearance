@@ -1,0 +1,572 @@
+﻿/* HanaUI page 鈥?ported from HanaAgent's settings styles.
+ * Source: openhanako desktop/src/react/settings/components/settings-components.module.css
+ * and desktop/src/react/settings/Settings.module.css (Apache-2.0).
+ * Every selector is scoped under .hana-ui-page; Hana's own CSS variables are
+ * bound to DeepSeek Harness --dsw-* tokens here so the page follows the active
+ * theme. */
+
+.hana-ui-page {
+    --bg: var(--dsw-alias-bg-base, #f8f4ed);
+    --bg-card: var(--dsw-alias-bg-layer-1, #fbf7ee);
+    --text: var(--dsw-alias-label-primary, #2a2622);
+    --text-light: var(--dsw-alias-label-secondary, #4a433c);
+    --text-muted: var(--dsw-alias-label-tertiary, #6b6158);
+    --border: var(--dsw-alias-border-l2, #d8cfbe);
+    --border-width: 1px;
+    --accent: var(--dsw-alias-brand-primary, #537d96);
+    --danger: var(--dsw-alias-state-error-primary, #8b2c1f);
+    --overlay-light: var(--dsw-alias-interactive-bg-hover, rgba(42, 38, 34, 0.05));
+    --radius-card: 10px;
+    --radius-input: 6px;
+    --space-4: 4px;
+    --space-8: 8px;
+    --space-12: 12px;
+    --space-16: 16px;
+    --space-24: 24px;
+    --space-32: 32px;
+    --space-40: 40px;
+    --fs-title: 14px;
+    --fs-body: 13px;
+    --fs-caption: 12px;
+    --fs-hint: 11px;
+    --fs-ui: 13px;
+    --duration-fast: 120ms;
+    --duration-slow: 200ms;
+    --ease-out: ease;
+
+    width: 100%;
+    max-width: 780px;
+    min-width: 0;
+    padding-bottom: var(--space-32);
+    color: var(--text);
+    font-size: var(--fs-body);
+}
+
+/* 鈹€鈹€鈹€ Section 鈹€鈹€鈹€ */
+.hana-ui-page .hana-section {
+    margin-bottom: var(--space-40);
+}
+.hana-ui-page .hana-section:last-child {
+    margin-bottom: 0;
+}
+.hana-ui-page .hana-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-16);
+    margin-bottom: var(--space-16);
+}
+.hana-ui-page .hana-section-header.has-description {
+    margin-bottom: var(--space-4);
+}
+.hana-ui-page .hana-section-title {
+    font-size: var(--fs-title);
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+.hana-ui-page .hana-section-description {
+    margin: 0 0 var(--space-16);
+    color: var(--text-muted);
+    font-size: var(--fs-caption);
+    line-height: 1.5;
+}
+.hana-ui-page .hana-surface-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-card);
+    border: var(--border-width) solid var(--border);
+    border-radius: var(--radius-card);
+}
+.hana-ui-page .hana-surface-body {
+    display: flex;
+    flex-direction: column;
+}
+
+/* 鈹€鈹€鈹€ Grid 鈹€鈹€鈹€ */
+.hana-ui-page .hana-grid {
+    display: grid;
+    min-width: 0;
+}
+.hana-ui-page .hana-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.hana-ui-page .hana-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.hana-ui-page .hana-gap-sm { gap: var(--space-8); }
+.hana-ui-page .hana-gap-md { gap: var(--space-16); }
+
+/* 鈹€鈹€鈹€ Row 鈹€鈹€鈹€ */
+.hana-ui-page .hana-row {
+    padding: var(--space-8) var(--space-16);
+    position: relative;
+}
+.hana-ui-page .hana-row + .hana-row::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--border-width);
+    background: var(--border);
+}
+.hana-ui-page .hana-row-inline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-16);
+}
+.hana-ui-page .hana-row-stacked {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+}
+.hana-ui-page .hana-row-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+.hana-ui-page .hana-row-label {
+    font-size: var(--fs-body);
+    color: var(--text);
+    font-weight: 500;
+}
+.hana-ui-page .hana-row-hint {
+    font-size: var(--fs-hint);
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+.hana-ui-page .hana-row-control {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+}
+
+/* Plain surface rows: no card inset, no divider */
+.hana-ui-page .hana-section-plain .hana-surface-body > .hana-row {
+    padding-left: 0;
+    padding-right: 0;
+}
+.hana-ui-page .hana-section-plain .hana-surface-body > .hana-row + .hana-row::before {
+    display: none;
+}
+
+/* 鈹€鈹€鈹€ Theme cards (Settings.module.css .theme-options / .theme-card) 鈹€鈹€鈹€ */
+.hana-ui-page .hana-theme-options {
+    gap: var(--space-8);
+}
+.hana-ui-page .hana-theme-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-height: 64px;
+    padding: var(--space-8);
+    border-radius: var(--radius-card);
+    border: 2px solid transparent;
+    cursor: pointer;
+    font-family: inherit;
+    transition:
+        transform var(--duration-fast) var(--ease-out),
+        box-shadow var(--duration-fast) var(--ease-out),
+        border-color var(--duration-fast) var(--ease-out);
+}
+.hana-ui-page .hana-theme-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+.hana-ui-page .hana-theme-card.is-active {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+.hana-ui-page .hana-theme-card-name {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.3;
+}
+.hana-ui-page .hana-theme-card-mode {
+    font-size: 11px;
+    line-height: 1.3;
+    opacity: 0.7;
+}
+
+/* 鈹€鈹€鈹€ Font cards (Settings.module.css .font-options / .font-card) 鈹€鈹€鈹€ */
+.hana-ui-page .hana-font-options {
+    margin-bottom: var(--space-16);
+}
+.hana-ui-page .hana-font-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-height: 84px;
+    padding: var(--space-12) var(--space-16);
+    background: var(--bg-card);
+    border: var(--border-width) solid var(--border);
+    border-radius: var(--radius-card);
+    cursor: pointer;
+    font-family: inherit;
+    color: var(--text);
+    transition:
+        border-color var(--duration-fast) var(--ease-out),
+        box-shadow var(--duration-fast) var(--ease-out);
+}
+.hana-ui-page .hana-font-card:hover {
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+.hana-ui-page .hana-font-card.is-active {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+.hana-ui-page .hana-font-card-sample {
+    font-size: 18px;
+    line-height: 1.5;
+    color: var(--text);
+    letter-spacing: 0.02em;
+}
+.hana-ui-page .hana-font-card-name {
+    font-size: var(--fs-body);
+    font-weight: 600;
+}
+.hana-ui-page .hana-font-card-desc {
+    font-size: var(--fs-hint);
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+/* 鈹€鈹€鈹€ Segmented control (texture modes / strength) 鈹€鈹€鈹€ */
+.hana-ui-page .hana-segmented {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px;
+    border-radius: var(--radius-input);
+    background: var(--dsw-alias-bg-layer-2, rgba(42, 38, 34, 0.04));
+}
+.hana-ui-page .hana-segmented-btn {
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: var(--fs-body);
+    line-height: 1.4;
+    padding: 4px 10px;
+    border-radius: calc(var(--radius-input) - 2px);
+    cursor: pointer;
+    transition:
+        background var(--duration-fast) var(--ease-out),
+        color var(--duration-fast) var(--ease-out);
+}
+.hana-ui-page .hana-segmented-btn:hover {
+    color: var(--text);
+}
+.hana-ui-page .hana-segmented-btn.is-active {
+    background: var(--bg-card);
+    color: var(--text);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+.hana-ui-page .hana-segmented.hana-segmented-small .hana-segmented-btn {
+    min-width: 26px;
+    padding: 3px 6px;
+    text-align: center;
+}
+
+/* 鈹€鈹€鈹€ Footer / reset 鈹€鈹€鈹€ */
+.hana-ui-page .hana-page-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: var(--space-8);
+}
+.hana-ui-page .hana-reset-button {
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: var(--fs-caption);
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: var(--radius-input);
+    transition: color var(--duration-fast) var(--ease-out);
+}
+.hana-ui-page .hana-reset-button:hover {
+    color: var(--text);
+}
+
+/* ═══════════════════════════════════════════
+ * Paper texture layer — ported 1:1 from HanaAgent's PaperTextureLayer
+ * (CapabilitiesPanel CSS block + preview-paper-texture-preference module).
+ * The three masks (mottle / fiber / grain) come from the same generated
+ * paper textures shipped by HanaAgent; the hi/lo layers paint the surface
+ * color lightened/darkened by --paper-texture-peak * strength, so the effect
+ * is paper grain rather than a colour wash.
+ * ═══════════════════════════════════════════ */
+
+.hana-paper-layer {
+    --paper-texture-peak: 0.09;
+    --paper-texture-mottle-tile: 1024px;
+    --paper-texture-fiber-tile: 720px;
+    --paper-texture-grain-tile: 256px;
+    --hana-paper-surface: var(--dsw-alias-bg-base, #F8F4ED);
+    position: fixed;
+    inset: 0;
+    z-index: 2147483000;
+    pointer-events: none;
+    display: none;
+}
+html[data-hana-paper-texture] .hana-paper-layer {
+    display: block;
+}
+.hana-paper-hi,
+.hana-paper-lo {
+    position: absolute;
+    inset: 0;
+    -webkit-mask-repeat: repeat;
+    mask-repeat: repeat;
+    -webkit-mask-composite: source-over;
+    mask-composite: add;
+    -webkit-mask-size: var(--paper-texture-mottle-tile), var(--paper-texture-fiber-tile),
+        var(--paper-texture-grain-tile);
+    mask-size: var(--paper-texture-mottle-tile), var(--paper-texture-fiber-tile),
+        var(--paper-texture-grain-tile);
+}
+.hana-paper-hi {
+    background: color-mix(in oklch, var(--hana-paper-surface), #ffffff 5%);
+    background: oklch(
+        from var(--hana-paper-surface)
+            calc(l + var(--paper-texture-peak) * var(--paper-texture-strength, 1)) c h
+    );
+}
+.hana-paper-lo {
+    background: color-mix(in oklch, var(--hana-paper-surface), #000000 5%);
+    background: oklch(
+        from var(--hana-paper-surface)
+            calc(l - var(--paper-texture-peak) * var(--paper-texture-strength, 1)) c h
+    );
+}
+
+/* rice (宣纸) */
+html[data-hana-paper-texture="rice"] .hana-paper-hi {
+    -webkit-mask-image: url("/plugins/dsh-hana-appearance/assets/paper-rice-mottle-hi.png"),
+        image-set(
+            url("/plugins/dsh-hana-appearance/assets/paper-rice-fiber-hi@1x.png") 1x,
+            url("/plugins/dsh-hana-appearance/assets/paper-rice-fiber-hi@2x.png") 2x
+        ),
+        image-set(
+            url("/plugins/dsh-hana-appearance/assets/paper-grain-hi@1x.png") 1x,
+            url("/plugins/dsh-hana-appearance/assets/paper-grain-hi@2x.png") 2x
+        );
+    mask-image: url("/plugins/dsh-hana-appearance/assets/paper-rice-mottle-hi.png"),
+        image-set(
+            url("/plugins/dsh-hana-appearance/assets/paper-rice-fiber-hi@1x.png") 1x,
+            url("/plugins/dsh-hana-appearance/assets/paper-rice-fiber-hi@2x.png") 2x
+        ),
+        image-set(
+            url("/plugins/dsh-hana-appearance/assets/paper-grain-hi@1x.png") 1x,
+            url("/plugins/dsh-hana-appearance/assets/paper-grain-hi@2x.png") 2x
+        );
+}
+html[data-hana-paper-texture="rice"] .hana-paper-lo {
+    -webkit-mask-image: url("/plugins/dsh-hana-appearance/assets/paper-rice-mottle-lo.png"),
+        image-set(
+            url("/plugins/dsh-hana-appearance/assets/paper-rice-fiber-lo@1x.png") 1x,
+            url("/plugins/dsh-hana-appearance/assets/paper-rice-fiber-lo@2x.png") 2x
+        ),
+        image-set(
+            url("/plugins/dsh-hana-appearance/assets/paper-grain-lo@1x.png") 1x,
+            url("/plugins/dsh-hana-appearance/assets/paper-grain-lo@2x.png") 2x
+        );
+    mask-image: url("/plugins/dsh-hana-appearance/assets/paper-rice-mottle-lo.png"),
+        image-set(
+            url("/plugins/dsh-hana-appearance/assets/paper-rice-fiber-lo@1x.png") 1x,
+            url("/plugins/dsh-hana-appearance/assets/paper-rice-fiber-lo@2x.png") 2x
+        ),
+        image-set(
+            url("/plugins/dsh-hana-appearance/assets/paper-grain-lo@1x.png") 1x,
+            url("/plugins/dsh-hana-appearance/assets/paper-grain-lo@2x.png") 2x
+        );
+}
+
+/* cotton (棉纸) */
+html[data-hana-paper-texture="cotton"] .hana-paper-hi {
+    -webkit-mask-image: url("/plugins/dsh-hana-appearance/assets/paper-cotton-mottle-hi.png"),
+        image-set(
+            url("/plugins/dsh-hana-appearance/assets/paper-cotton-fiber-hi@1x.png") 1x,
+            url("/plugins/dsh-hana-appearance/assets/paper-cotton-fiber-hi@2x.png") 2x
+        ),
+        image-set(
+            url("/plugins/dsh-hana-appearance/assets/paper-grain-hi@1x.png") 1x,
+            url("/plugins/dsh-hana-appearance/assets/paper-grain-hi@2x.png") 2x
+        );
+    mask-image: url("/plugins/dsh-hana-appearance/assets/paper-cotton-mottle-hi.png"),
+        image-set(
+            url("/plugins/dsh-hana-appearance/assets/paper-cotton-fiber-hi@1x.png") 1x,
+            url("/plugins/dsh-hana-appearance/assets/paper-cotton-fiber-hi@2x.png") 2x
+        ),
+        image-set(
+            url("/plugins/dsh-hana-appearance/assets/paper-grain-hi@1x.png") 1x,
+            url("/plugins/dsh-hana-appearance/assets/paper-grain-hi@2x.png") 2x
+        );
+}
+html[data-hana-paper-texture="cotton"] .hana-paper-lo {
+    -webkit-mask-image: url("/plugins/dsh-hana-appearance/assets/paper-cotton-mottle-lo.png"),
+        image-set(
+            url("/plugins/dsh-hana-appearance/assets/paper-cotton-fiber-lo@1x.png") 1x,
+            url("/plugins/dsh-hana-appearance/assets/paper-cotton-fiber-lo@2x.png") 2x
+        ),
+        image-set(
+            url("/plugins/dsh-hana-appearance/assets/paper-grain-lo@1x.png") 1x,
+            url("/plugins/dsh-hana-appearance/assets/paper-grain-lo@2x.png") 2x
+        );
+    mask-image: url("/plugins/dsh-hana-appearance/assets/paper-cotton-mottle-lo.png"),
+        image-set(
+            url("/plugins/dsh-hana-appearance/assets/paper-cotton-fiber-lo@1x.png") 1x,
+            url("/plugins/dsh-hana-appearance/assets/paper-cotton-fiber-lo@2x.png") 2x
+        ),
+        image-set(
+            url("/plugins/dsh-hana-appearance/assets/paper-grain-lo@1x.png") 1x,
+            url("/plugins/dsh-hana-appearance/assets/paper-grain-lo@2x.png") 2x
+        );
+}
+
+/* fine (细颗粒) */
+html[data-hana-paper-texture="fine"] .hana-paper-hi {
+    -webkit-mask-image: url("/plugins/dsh-hana-appearance/assets/paper-fine-mottle-hi.png"),
+        image-set(
+            url("/plugins/dsh-hana-appearance/assets/paper-fine-fiber-hi@1x.png") 1x,
+            url("/plugins/dsh-hana-appearance/assets/paper-fine-fiber-hi@2x.png") 2x
+        ),
+        image-set(
+            url("/plugins/dsh-hana-appearance/assets/paper-grain-hi@1x.png") 1x,
+            url("/plugins/dsh-hana-appearance/assets/paper-grain-hi@2x.png") 2x
+        );
+    mask-image: url("/plugins/dsh-hana-appearance/assets/paper-fine-mottle-hi.png"),
+        image-set(
+            url("/plugins/dsh-hana-appearance/assets/paper-fine-fiber-hi@1x.png") 1x,
+            url("/plugins/dsh-hana-appearance/assets/paper-fine-fiber-hi@2x.png") 2x
+        ),
+        image-set(
+            url("/plugins/dsh-hana-appearance/assets/paper-grain-hi@1x.png") 1x,
+            url("/plugins/dsh-hana-appearance/assets/paper-grain-hi@2x.png") 2x
+        );
+}
+html[data-hana-paper-texture="fine"] .hana-paper-lo {
+    -webkit-mask-image: url("/plugins/dsh-hana-appearance/assets/paper-fine-mottle-lo.png"),
+        image-set(
+            url("/plugins/dsh-hana-appearance/assets/paper-fine-fiber-lo@1x.png") 1x,
+            url("/plugins/dsh-hana-appearance/assets/paper-fine-fiber-lo@2x.png") 2x
+        ),
+        image-set(
+            url("/plugins/dsh-hana-appearance/assets/paper-grain-lo@1x.png") 1x,
+            url("/plugins/dsh-hana-appearance/assets/paper-grain-lo@2x.png") 2x
+        );
+    mask-image: url("/plugins/dsh-hana-appearance/assets/paper-fine-mottle-lo.png"),
+        image-set(
+            url("/plugins/dsh-hana-appearance/assets/paper-fine-fiber-lo@1x.png") 1x,
+            url("/plugins/dsh-hana-appearance/assets/paper-fine-fiber-lo@2x.png") 2x
+        ),
+        image-set(
+            url("/plugins/dsh-hana-appearance/assets/paper-grain-lo@1x.png") 1x,
+            url("/plugins/dsh-hana-appearance/assets/paper-grain-lo@2x.png") 2x
+        );
+}
+/* StepSlider — 逐条移植自 HanaAgent 1.5.118 已安装版本的 SettingsModalShell 构建产物
+   （design tokens: space-24=1.5rem, space-4=.25rem, space-2=.125rem, radius-sm=5px,
+    fs-hint=.7rem, duration-paper-spring=.172s, ease-paper-spring=linear(...)，
+    颜色换成 HanaUI 的主题变量）。 */
+.hana-step-slider {
+  --hana-step-handle: 1.5rem;
+  --hana-step-track: 0.25rem;
+  --hana-step-inset: 1.5rem;
+  --hana-step-thumb: calc(var(--hana-step-inset) * 2);
+  --hana-step-border: 2px;
+  --hana-ease-paper-spring: linear(0, 0.01, 0.036, 0.075, 0.125, 0.182, 0.244, 0.309, 0.375, 0.441, 0.506, 0.568, 0.627, 0.682, 0.733, 0.78, 0.823, 0.862, 0.896, 0.925, 0.951, 0.974, 0.992, 1.008, 1.02, 1.03, 1.038, 1.043, 1.047, 1.049, 1.05, 1.05, 1.049, 1.047, 1.045, 1.042, 1.039, 1.036, 1.032, 1.029, 1.026, 1.022, 1.019, 1.017, 1.014, 1.012, 1.009, 1.007, 1);
+  width: 198px;
+  max-width: 100%;
+}
+.hana-step-rail { position: relative; isolation: isolate; height: var(--hana-step-handle); }
+.hana-step-underlay { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.hana-step-segments {
+  position: absolute;
+  left: var(--hana-step-inset);
+  right: var(--hana-step-inset);
+  top: calc(var(--hana-step-handle) / 2 - var(--hana-step-track) / 2);
+  height: var(--hana-step-track);
+  display: flex;
+  gap: 0.125rem;
+}
+.hana-step-segment { flex: 1; border-radius: 999px; background: var(--hana-border); transition: background-color 0.15s ease; }
+.hana-step-segment[data-on="1"] { background: var(--hana-accent); }
+.hana-step-input { width: 100%; height: var(--hana-step-handle); margin: 0; padding: 0; border: 0; appearance: none; -webkit-appearance: none; background: transparent; cursor: default; }
+.hana-step-input::-webkit-slider-runnable-track { height: var(--hana-step-track); background: transparent; }
+.hana-step-input::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: var(--hana-step-thumb);
+  height: var(--hana-step-handle);
+  margin-top: calc((var(--hana-step-track) - var(--hana-step-handle)) / 2);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.hana-step-input::-moz-range-track { height: var(--hana-step-track); border: 0; background: transparent; }
+.hana-step-input::-moz-range-progress { background: transparent; }
+.hana-step-input::-moz-range-thumb { width: var(--hana-step-thumb); height: var(--hana-step-handle); border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.hana-step-handle-layer { position: absolute; top: 0; bottom: 0; left: var(--hana-step-inset); right: var(--hana-step-inset); pointer-events: none; }
+.hana-step-handle {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--hana-step-progress, 0) * 100%);
+  transform: translate(-50%, -50%);
+  height: var(--hana-step-handle);
+  min-width: var(--hana-step-handle);
+  width: calc(var(--hana-step-label-width, 0px) + 0.25rem * 2 + var(--hana-step-border) * 2);
+  padding: 0 0.25rem;
+  border: var(--hana-step-border) solid var(--hana-card);
+  border-radius: calc(5px + 0.25rem);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--hana-accent);
+  color: var(--hana-on-accent, #fff);
+  font-size: 0.7rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.hana-step-handle[data-animate-width] {
+  transition:
+    width 0.172s var(--hana-ease-paper-spring),
+    box-shadow 0.15s ease;
+}
+.hana-step-input:hover ~ .hana-step-handle-layer .hana-step-handle,
+.hana-step-input:focus-visible ~ .hana-step-handle-layer .hana-step-handle {
+  box-shadow:
+    0 1px 3px var(--hana-shadow, rgba(59, 61, 63, 0.09)),
+    0 0 0 4px color-mix(in srgb, var(--hana-accent) 16%, transparent);
+}
+.hana-step-value { display: grid; place-items: center; overflow: hidden; height: 1.15em; line-height: 1; }
+.hana-step-roll-layer { grid-area: 1 / 1; white-space: nowrap; will-change: transform, opacity; }
+.hana-step-sizer { position: absolute; top: 0; left: 0; white-space: nowrap; visibility: hidden; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) {
+  .hana-step-segment { transition: none; }
+  .hana-step-handle[data-animate-width] { transition: none; }
+  .hana-step-roll-layer { will-change: auto; }
+}
+
+/* Fade decorative overlays out while DSH's image lightbox is open. */
+.hana-paper-layer,
+#dsh-hana-appearance-sunny,
+#dsh-hana-appearance-sunny-warm {
+  transition: opacity 240ms ease;
+}
+html[data-hana-media-open] .hana-paper-layer,
+html[data-hana-media-open] #dsh-hana-appearance-sunny,
+html[data-hana-media-open] #dsh-hana-appearance-sunny-warm {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}

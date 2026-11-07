@@ -1,0 +1,15 @@
+# dependencies / build scratch
+node_modules/
+*.log
+*.tmp-*
+*.bak
+*.bak-*
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# local experiments kept out of the published repo
+_attic/
+splash-preview*
+refs/

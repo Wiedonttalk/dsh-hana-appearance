@@ -1,0 +1,64 @@
+{
+  "name": "dsh-hana-appearance",
+  "version": "0.3.0",
+  "private": true,
+  "description": "HanaAgent-flavoured themes, reading fonts and paper textures for DeepSeek Harness, with the HanaUI settings page.",
+  "license": "MIT",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./assets/*": "./lib/assets/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE",
+    "NOTICE",
+    "licenses"
+  ],
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "test": "node tools/test-client.mjs && node tools/test-sunny.mjs"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "appearance",
+    "theme",
+    "hana-agent",
+    "paper-texture"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Wiedonttalk/dsh-hana-appearance.git"
+  },
+  "homepage": "https://github.com/Wiedonttalk/dsh-hana-appearance#readme",
+  "bugs": {
+    "url": "https://github.com/Wiedonttalk/dsh-hana-appearance/issues"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-renderer",
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-theme",
+        "@deepseek-ai/dsh-client-ui-settings"
+      ],
+      "platform": "web",
+      "immediately": true
+    }
+  },
+  "peerDependencies": {
+    "react": "^18.2.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

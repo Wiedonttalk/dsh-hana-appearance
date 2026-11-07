@@ -1,0 +1,33 @@
+# NOTICE
+
+dsh-hana-appearance — HanaAgent-flavoured appearance plugin for DeepSeek Harness.
+Copyright 2026 Wiedonttalk and dsh-hana-appearance contributors.
+Licensed under the MIT License (see LICENSE).
+
+## Ported material: HanaAgent / openhanako
+
+This project is a visual port of **HanaAgent (openhanako)**,
+<https://github.com/liliMozi/openhanako>, which is licensed under the
+**Apache License, Version 2.0** (a copy is included in
+licenses/Apache-2.0.txt).
+
+Ported / derived material includes:
+
+- theme palettes and design tokens derived from `desktop/src/themes/*.css`
+  (source for `src/themes.generated.json` and the bundled themes);
+- the HanaUI settings-page layout, section structure and control styling;
+- the StepSlider control and the sunny-mode procedural tree-shadow renderer
+  (reimplemented function-by-function from the upstream build);
+- paper texture images (`lib/assets/paper-*.png`).
+
+The upstream code and assets remain the property of the openhanako
+contributors and are used under the terms of the Apache License 2.0.
+No endorsement by the openhanako project is claimed.
+
+## Runtime-downloaded font (not bundled)
+
+The optional reading font "霞鹜新致宋" / LXGW Neo ZhiSong
+(<https://github.com/lxgw/LxgwNeoZhiSong>) is licensed under the
+**SIL Open Font License, Version 1.1**. It is downloaded from the upstream
+GitHub release at the user's request and is not distributed with this
+repository.

@@ -1,0 +1,6 @@
+# dsh-hana-appearance profile patch: inserts the plugin's loader row into the
+# profile roster. The browser half is picked up by dsh-client-modules through
+# the package's dsh.client declaration (same shape as the shipped ui-* packages).
+- insert:
+    - id: hana-appearance
+      name: 'dsh-hana-appearance'
