@@ -1,6 +1,6 @@
 // Unit tests for the Windows desktop app-icon planner (host half).
 // Pure functions only: no PowerShell, no file system side effects.
-import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { AppIconSync, decodeBase64Ico, describeShortcutFailure, iconFile, isIcoBuffer, isManagedIcon, planAppIcon } from '../lib/app-icon.js'
@@ -136,6 +136,7 @@ assert(base64Throws('not base64!!') === true, 'malformed base64 uploads are reje
   const iconDir = join(home, 'bundled')
   mkdirSync(iconDir)
   writeFileSync(join(iconDir, 'orchid.ico'), icoHeader(1))
+  writeFileSync(join(iconDir, 'plum.ico'), icoHeader(1))
 
   const io = {
     async scan() {
@@ -146,26 +147,33 @@ assert(base64Throws('not base64!!') === true, 'malformed base64 uploads are reje
     },
   }
   const windowIcons = []
-  const sync = new AppIconSync(home, { execPath: 'C:\\app\\DeepSeek Harness.exe' }, iconDir, ['orchid'], io, (file) => windowIcons.push(file))
+  const statePath = join(home, 'hana-appearance-app-icon.json')
+  const sync = new AppIconSync(home, { execPath: 'C:\\app\\DeepSeek Harness.exe' }, iconDir, ['orchid', 'plum'], io, (file) => windowIcons.push(file))
 
   await sync.reconcile()
+  await sync.setIcon('plum')
   const uploaded = icoHeader(1)
   const uploadedResult = await sync.uploadCustom(uploaded)
   assert(uploadedResult.applied === 'custom', 'uploading a custom icon selects it')
   assert(existsSync(join(home, 'hana-appearance-app-icon-custom.ico')) === true, 'custom ICO is persisted under DSH_HOME')
   assert(sync.status().hasCustom === true && typeof sync.status().customVersion === 'string', 'status reports the custom icon and its version')
+  assert(JSON.parse(readFileSync(statePath, 'utf8')).previousIconId === 'plum', 'the built-in icon replaced by the custom icon is remembered')
   assert(
     windowIcons.some((file) => file !== null && file.includes('hana-appearance-app-icons')),
     'window icon helper received a managed copy of the custom ICO'
   )
 
+  const removedToPrevious = await sync.removeCustom()
+  assert(removedToPrevious.applied === 'plum', 'removing the custom icon restores the built-in selected before the upload')
+  assert(sync.status().hasCustom === false, 'removed custom icon disappears from the status')
+
+  await sync.uploadCustom(icoHeader(1))
   const selectedBuiltin = await sync.setIcon('orchid')
   assert(selectedBuiltin.applied === 'orchid', 'built-in icons still work after a custom upload')
   assert(sync.status().hasCustom === true, 'custom icon stays stored while another icon is selected')
 
   const removed = await sync.removeCustom()
   assert(removed.applied === 'orchid', 'removing the custom icon keeps the current built-in selection')
-  assert(sync.status().hasCustom === false, 'removed custom icon disappears from the status')
 
   const rejected = await sync.uploadCustom(Buffer.from('not an icon')).then(
     () => false,
