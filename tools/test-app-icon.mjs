@@ -3,7 +3,7 @@
 import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { AppIconSync, describeShortcutFailure, iconFile, isIcoBuffer, isManagedIcon, planAppIcon } from '../lib/app-icon.js'
+import { AppIconSync, decodeBase64Ico, describeShortcutFailure, iconFile, isIcoBuffer, isManagedIcon, planAppIcon } from '../lib/app-icon.js'
 
 const assert = (cond, message) => {
   if (!cond) throw new Error('ASSERT FAILED: ' + message)
@@ -113,6 +113,22 @@ assert(isIcoBuffer(icoHeader(7)) === true, 'multi-size ICO headers are accepted'
 assert(isIcoBuffer(Buffer.from([0, 0, 1, 0, 0, 0])) === false, 'an ICO without images is rejected')
 assert(isIcoBuffer(Buffer.from('not an icon')) === false, 'arbitrary bytes are rejected')
 assert(isIcoBuffer(Buffer.from([0, 0, 5, 0, 1, 0])) === false, 'a non-ICO type is rejected')
+
+// 8b) Base64 upload channel used by the desktop settings page.
+const base64Header = icoHeader(1).toString('base64')
+assert(isIcoBuffer(decodeBase64Ico(base64Header)) === true, 'base64 upload decodes to the ICO bytes')
+assert(isIcoBuffer(decodeBase64Ico(' ' + base64Header + '\n')) === true, 'base64 upload tolerates whitespace')
+const base64Throws = (value) => {
+  try {
+    decodeBase64Ico(value)
+    return false
+  } catch (error) {
+    return error.message === 'invalid-ico'
+  }
+}
+assert(base64Throws('') === true, 'empty base64 uploads are rejected')
+assert(base64Throws('AAAA') === true, 'too-short base64 uploads are rejected')
+assert(base64Throws('not base64!!') === true, 'malformed base64 uploads are rejected')
 
 // 9) Custom icon lifecycle against a temporary DSH home and a stub scanner.
 {

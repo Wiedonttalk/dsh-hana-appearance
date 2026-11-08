@@ -1,6 +1,6 @@
 {
   "name": "dsh-hana-appearance",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "private": true,
   "description": "HanaAgent-flavoured themes, reading fonts, paper textures and custom Windows app icons for DeepSeek Harness, with the HanaUI settings page.",
   "license": "MIT",

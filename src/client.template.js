@@ -412,21 +412,51 @@ window.__ModuleLoader__.load({
 		}
 
 		/* ── Custom app icon: PNG/JPG/ICO → a multi-size BMP-based ICO in the
-		 * browser, then uploaded as raw bytes to the host half. ── */
-		function loadUploadImage(file) {
-			return new Promise((resolve, reject) => {
-				const url = URL.createObjectURL(file);
-				const image = new Image();
-				image.onload = () => {
-					URL.revokeObjectURL(url);
-					resolve(image);
-				};
-				image.onerror = () => {
-					URL.revokeObjectURL(url);
-					reject(new Error("无法读取这张图片"));
-				};
-				image.src = url;
-			});
+		 * browser, then uploaded as base64 JSON (binary POSTs are not reliable
+		 * through the desktop dsh-app:// request proxy). ── */
+		function bytesToBase64(bytes) {
+			const chunk = 0x8000;
+			let binary = "";
+			for (let index = 0; index < bytes.length; index += chunk) {
+				binary += String.fromCharCode.apply(null, bytes.subarray(index, index + chunk));
+			}
+			return btoa(binary);
+		}
+
+		function guessImageMime(name) {
+			const lower = (name ?? "").toLowerCase();
+			if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
+			if (lower.endsWith(".webp")) return "image/webp";
+			if (lower.endsWith(".gif")) return "image/gif";
+			if (lower.endsWith(".bmp")) return "image/bmp";
+			return "image/png";
+		}
+
+		async function decodeUploadImage(file) {
+			// createImageBitmap decodes the File directly, without a blob: URL —
+			// the desktop app's dsh-app:// page sometimes refuses to load those.
+			if (typeof createImageBitmap === "function") {
+				try {
+					return await createImageBitmap(file);
+				} catch {
+					// fall through to the data-URL decoder
+				}
+			}
+			let failure = null;
+			try {
+				const bytes = new Uint8Array(await file.arrayBuffer());
+				const mime = file.type !== undefined && file.type.startsWith("image/") ? file.type : guessImageMime(file.name);
+				const dataUrl = `data:${mime};base64,${bytesToBase64(bytes)}`;
+				return await new Promise((resolve, reject) => {
+					const image = new Image();
+					image.onload = () => resolve(image);
+					image.onerror = () => reject(new Error("无法读取这张图片"));
+					image.src = dataUrl;
+				});
+			} catch (error) {
+				failure = error instanceof Error ? error.message : String(error);
+			}
+			throw new Error(`无法读取这张图片（${file.type || "未知格式"}，${Math.round((file.size || 0) / 1024)} KB；${failure}）`);
 		}
 
 		function buildIcoFile(images) {
@@ -489,11 +519,11 @@ window.__ModuleLoader__.load({
 			if (isIco) {
 				const bytes = new Uint8Array(await file.arrayBuffer());
 				if (bytes.length < 6 || bytes[0] !== 0 || bytes[1] !== 0 || bytes[2] !== 1 || bytes[3] !== 0) {
-					throw new Error("invalid-ico");
+					throw new Error("这不是有效的 ICO 文件");
 				}
 				return bytes;
 			}
-			const image = await loadUploadImage(file);
+			const image = await decodeUploadImage(file);
 			const sizes = [256, 128, 64, 48, 32, 24, 16].map((size) => {
 				const canvas = document.createElement("canvas");
 				canvas.width = size;
@@ -510,11 +540,11 @@ window.__ModuleLoader__.load({
 
 		async function uploadCustomAppIcon(file) {
 			const bytes = await fileToIcoBytes(file);
-			if (bytes.length > APP_ICON_UPLOAD_MAX) throw new Error("icon-too-large");
+			if (bytes.length > APP_ICON_UPLOAD_MAX) throw new Error("图标文件太大了（上限 3 MB）");
 			const response = await fetch(APP_ICON_ROUTE, {
 				method: "POST",
-				headers: { "content-type": "application/octet-stream" },
-				body: bytes,
+				headers: { "content-type": "application/json" },
+				body: JSON.stringify({ uploadCustomBase64: bytesToBase64(bytes) }),
 			});
 			let info = {};
 			try {

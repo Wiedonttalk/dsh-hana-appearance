@@ -33,7 +33,7 @@
 
 ```bash
 git clone https://github.com/Wiedonttalk/dsh-hana-appearance.git
-# 或者下载 Releases 里的 dsh-hana-appearance-0.5.0.tgz 并解压
+# 或者下载 Releases 里的 dsh-hana-appearance-0.5.2.tgz 并解压
 ```
 
 > `lib/client.js` 已随仓库提供，直接可用；修改 `src/` 后需要重新构建（见下文）。
