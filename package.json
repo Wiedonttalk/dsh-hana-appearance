@@ -1,8 +1,8 @@
 {
   "name": "dsh-hana-appearance",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
-  "description": "HanaAgent-flavoured themes, reading fonts and paper textures for DeepSeek Harness, with the HanaUI settings page.",
+  "description": "HanaAgent-flavoured themes, reading fonts, paper textures and Windows app icons for DeepSeek Harness, with the HanaUI settings page.",
   "license": "MIT",
   "author": "Wiedonttalk (https://github.com/Wiedonttalk)",
   "contributors": [
@@ -28,7 +28,7 @@
   ],
   "scripts": {
     "build": "node tools/build.mjs",
-    "test": "node tools/test-client.mjs && node tools/test-sunny.mjs"
+    "test": "node tools/test-app-icon.mjs && node tools/test-client.mjs && node tools/test-sunny.mjs"
   },
   "keywords": [
     "dsh",

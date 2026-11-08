@@ -24,6 +24,15 @@ The upstream code and assets remain the property of the openhanako
 contributors and are used under the terms of the Apache License 2.0.
 No endorsement by the openhanako project is claimed.
 
+## Ported material: desktop icon sync mechanism
+
+The Windows desktop app-icon sync in `lib/app-icon.js` (shortcut scan/backup,
+start-menu refresh parking, `SHChangeNotify` and the `WM_SETICON` window-icon
+helper) is adapted from **@smalltailqwq/dsh-client-ui-skin-deep-whale-manager**,
+<https://github.com/Small-tailqwq/dsh-deep-whale>, which is licensed under the
+**MIT License**, Copyright (c) 2026 Small-tailqwq (a copy is included in
+licenses/dsh-deep-whale-manager-MIT.txt). HanaUI adapted it from "follow the
+active skin" to a per-icon selection with its own icon assets and state file.
 ## Runtime-downloaded font (not bundled)
 
 The optional reading font "霞鹜新致宋" / LXGW Neo ZhiSong

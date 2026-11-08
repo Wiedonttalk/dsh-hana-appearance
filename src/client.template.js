@@ -1,4 +1,4 @@
-﻿// dsh-hana-appearance — browser half (client plugin bundle).
+// dsh-hana-appearance — browser half (client plugin bundle).
 // Loaded by dsh-client-modules at /plugins/dsh-hana-appearance/client.js and
 // executed through the vendored cordis Loader's lazy-CJS module table.
 // The factory body is plain CJS with require() resolved against the shell's
@@ -40,6 +40,7 @@ window.__ModuleLoader__.load({
 			textureStrength: 3,
 			showSticker: true,
 			toolIcon: "svg",
+			appIcon: "default",
 			language: "zh-CN",
 			timezone: "Asia/Shanghai",
 			fontSizeOffset: 0,
@@ -90,6 +91,21 @@ window.__ModuleLoader__.load({
 
 		const STRENGTH_OPTIONS = [1, 2, 3, 4, 5].map((value) => ({ value, label: String(value) }));
 
+		/** Bundled HanaUI desktop app icons (Windows-only shortcut/window icon sync). */
+		const APP_ICON_IDS = ["orchid", "classic", "plum", "bot"];
+		const APP_ICON_ROUTE = "/api/hana-appearance/app-icon";
+		const APP_ICONS = [
+			{ id: "orchid", name: "兰", file: "orchid.png" },
+			{ id: "classic", name: "经典", file: "classic.png" },
+			{ id: "plum", name: "梅", file: "plum.png" },
+			{ id: "bot", name: "Bot", file: "bot.png" },
+		];
+
+		/** Asset URL served by the harness client-module asset route. */
+		function iconAssetUrl(file) {
+			return `/plugins/dsh-hana-appearance/assets/icons/${file}`;
+		}
+
 		/** Clamp helper for the texture strength (1..5, indexes TEXTURE_STRENGTH_VALUES). */
 		function clampStrength(value) {
 			const parsed = Number(value);
@@ -115,6 +131,7 @@ window.__ModuleLoader__.load({
 				textureStrength: clampStrength(raw.textureStrength),
 				showSticker: raw.showSticker !== false,
 				toolIcon: raw.toolIcon === "emoji" ? "emoji" : "svg",
+				appIcon: APP_ICON_IDS.includes(raw.appIcon) ? raw.appIcon : "default",
 				language: typeof raw.language === "string" && raw.language !== "" ? raw.language : "zh-CN",
 				timezone: typeof raw.timezone === "string" && raw.timezone !== "" ? raw.timezone : "Asia/Shanghai",
 				fontSizeOffset: clampOffset(raw.fontSizeOffset),
@@ -332,6 +349,60 @@ window.__ModuleLoader__.load({
 			if (state.wenkaiReady !== true) return;
 			const loaded = await loadCachedWenkaiFont();
 			if (!loaded) setState({ wenkaiReady: false });
+		}
+
+		/* Bundled HanaUI app icons: the host half rewrites the Windows desktop,
+		 * Start-menu and pinned-taskbar shortcuts and keeps the window icon
+		 * (taskbar thumbnail / Alt+Tab) in sync — see lib/app-icon.js. */
+		let appIconStatus = null;
+
+		function getAppIconStatus() {
+			return appIconStatus;
+		}
+
+		function appIconErrorMessage(message) {
+			if (message.includes("unknown-app-icon")) return "未知的应用图标";
+			if (message.includes("app-icon-powershell")) return "系统调用失败：" + message.replace(/^app-icon-powershell:\s*/, "");
+			return message;
+		}
+
+		async function refreshAppIconStatus() {
+			try {
+				const response = await fetch(APP_ICON_ROUTE);
+				if (!response.ok) {
+					const notReady = response.status === 401 || response.status === 403 || response.status === 404 || response.status === 405;
+					appIconStatus = {
+						supported: !notReady,
+						ok: false,
+						error: notReady ? "应用图标服务未就绪（重启 DSH 一次后生效）" : "HTTP " + response.status,
+					};
+					return appIconStatus;
+				}
+				appIconStatus = await response.json();
+			} catch (error) {
+				appIconStatus = { supported: true, ok: false, error: error instanceof Error ? error.message : String(error) };
+			}
+			return appIconStatus;
+		}
+
+		async function applyAppIcon(iconId) {
+			const response = await fetch(APP_ICON_ROUTE, {
+				method: "POST",
+				headers: { "content-type": "application/json" },
+				body: JSON.stringify({ iconId }),
+			});
+			let info = {};
+			try {
+				info = await response.json();
+			} catch {
+				info = {};
+			}
+			if (!response.ok || info.ok === false) {
+				const notReady = response.status === 401 || response.status === 403 || response.status === 404 || response.status === 405;
+				throw new Error(notReady ? "应用图标服务未就绪（重启 DSH 一次后生效）" : appIconErrorMessage(String(info.error ?? "HTTP " + response.status)));
+			}
+			appIconStatus = { ...info, supported: info.supported !== false, ok: true };
+			return appIconStatus;
 		}
 
 		/** @returns the current appearance state (stable reference until changed). */
@@ -1684,6 +1755,52 @@ window.__ModuleLoader__.load({
 			);
 		}
 
+		function AppIconCard({ icon, selected, disabled, onSelect }) {
+			return C(
+				"button",
+				{
+					type: "button",
+					title: icon.name,
+					"aria-pressed": selected,
+					disabled: disabled === true,
+					onClick: disabled === true ? undefined : onSelect,
+					style: {
+						display: "flex",
+						flexDirection: "column",
+						alignItems: "center",
+						justifyContent: "center",
+						gap: 8,
+						width: "100%",
+						minHeight: 96,
+						padding: "12px 8px",
+						border: "none",
+						background: "transparent",
+						cursor: disabled === true ? "default" : "pointer",
+						borderRadius: 10,
+						opacity: disabled === true ? 0.55 : 1,
+					},
+				},
+				C("img", {
+					src: iconAssetUrl(icon.file),
+					alt: icon.name,
+					width: 56,
+					height: 56,
+					draggable: false,
+					style: {
+						borderRadius: 14,
+						outline: selected ? "2px solid var(--hana-accent)" : "1px solid var(--hana-border)",
+						outlineOffset: 2,
+						objectFit: "cover",
+					},
+				}),
+				C(
+					"span",
+					{ style: { fontSize: 13, color: selected ? "var(--hana-accent)" : "var(--hana-muted)" } },
+					icon.name
+				)
+			);
+		}
+
 		function FontCard({ option, selected, onSelect }) {
 			return C(
 				"button",
@@ -1784,6 +1901,45 @@ window.__ModuleLoader__.load({
 
 			const fontStatus = getFontStatus();
 
+			/* Windows desktop icon sync: selection comes from the host bridge
+			 * route, which rewrites the shortcuts and the window icon. */
+			const [iconStatus, setIconStatus] = react.useState(() => getAppIconStatus());
+			const [iconBusy, setIconBusy] = react.useState(false);
+			const [iconError, setIconError] = react.useState(null);
+			react.useEffect(() => {
+				let alive = true;
+				void refreshAppIconStatus().then((status) => {
+					if (!alive || status === null) return;
+					setIconStatus(status);
+					if (status.supported === true) {
+						const applied = typeof status.applied === "string" && APP_ICON_IDS.includes(status.applied) ? status.applied : "default";
+						if (getState().appIcon !== applied) setState({ appIcon: applied });
+					}
+				});
+				return () => {
+					alive = false;
+				};
+			}, []);
+			const chooseAppIcon = (iconId) => {
+				setIconBusy(true);
+				setIconError(null);
+				void applyAppIcon(iconId)
+					.then((status) => {
+						const applied =
+							status.supported === false
+								? getState().appIcon
+								: status.applied === null || status.applied === undefined
+									? "default"
+									: status.applied;
+						if (typeof applied === "string" && (applied === "default" || APP_ICON_IDS.includes(applied))) setState({ appIcon: applied });
+						setIconStatus(status);
+					})
+					.catch((error) => {
+						setIconError(error instanceof Error ? error.message : String(error));
+					})
+					.finally(() => setIconBusy(false));
+			};
+
 			/* Ink strength follows the active Hana palette (HanaAgent look). */
 			const dark = isDarkMode(snapshot.theme);
 			const tokens = THEME_BY_ID.get(snapshot.theme)?.tokens ?? {};
@@ -1875,6 +2031,65 @@ window.__ModuleLoader__.load({
 						themeCards[1],
 						C(AutoCard, { selected: snapshot.theme === DEFAULT_SKIN, onSelect: () => setSkinState({ theme: DEFAULT_SKIN }) }),
 						...themeCards.slice(2)
+					)
+				),
+				// ── 应用图标 ──
+				C(
+					Section,
+					{
+						title: "应用图标",
+						description: "把桌面、开始菜单、任务栏和窗口缩略图上的图标换成选中的样式（仅 Windows 桌面版）",
+						action: C(
+							"button",
+							{
+								type: "button",
+								style: LINK_BTN,
+								disabled: iconBusy || iconStatus?.supported === false,
+								onClick: () => chooseAppIcon("default"),
+							},
+							"恢复默认"
+						),
+					},
+					C(
+						"div",
+						null,
+						C(
+							"div",
+							{ style: { display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 8 } },
+							APP_ICONS.map((entry) =>
+								C(AppIconCard, {
+									key: entry.id,
+									icon: entry,
+									selected: snapshot.appIcon === entry.id,
+									disabled: iconBusy || iconStatus?.supported === false,
+									onSelect: () => chooseAppIcon(entry.id),
+								})
+							)
+						),
+						iconStatus?.supported === false
+							? C(
+									"div",
+									{ style: { marginTop: 8, fontSize: 12, color: "var(--hana-muted)" } },
+									"当前环境不支持修改应用图标：请在 Windows 桌面版 DSH 中使用。"
+								)
+							: null,
+						iconBusy
+							? C("div", { style: { marginTop: 8, fontSize: 12, color: "var(--hana-muted)" } }, "正在更新快捷方式…")
+							: null,
+						iconError !== null
+							? C("div", { style: { marginTop: 8, fontSize: 12, color: "#B33A2B" } }, "修改失败：" + iconError)
+							: null,
+						iconStatus !== null && iconStatus.supported === true && typeof iconStatus.updated === "number" && iconStatus.updated > 0
+							? C(
+									"div",
+									{ style: { marginTop: 8, fontSize: 12, color: "var(--hana-muted)" } },
+									"已更新 " +
+										iconStatus.updated +
+										" 个快捷方式" +
+										(iconStatus.failed > 0 ? "，" + iconStatus.failed + " 个失败" : "") +
+										"；窗口图标会在几秒内刷新。"
+								)
+							: null
 					)
 				),
 				// ── 字体 ──

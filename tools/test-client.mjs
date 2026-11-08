@@ -86,8 +86,17 @@ const window = {
 }
 
 const fetchLog = []
+let appIconApplied = null
 const fetchStub = async (url, init) => {
   fetchLog.push([url, init])
+  if (url === '/api/hana-appearance/app-icon') {
+    if (init?.method === 'POST') {
+      const body = JSON.parse(init.body)
+      appIconApplied = body.iconId === 'default' ? null : body.iconId
+      return { ok: true, json: async () => ({ ok: true, supported: true, applied: appIconApplied, updated: 4, failed: 0 }) }
+    }
+    return { ok: true, json: async () => ({ ok: true, supported: true, applied: appIconApplied }) }
+  }
   return { ok: true, json: async () => ({}) }
 }
 
@@ -314,9 +323,17 @@ assert(JSON.parse(storage.get('dsh-hana-appearance:state')).splashEnabled === un
 const splashToggle = deepFind(tree, (node) => node.props && node.props.ariaLabel === '启动画面')
 assert(splashToggle === null, 'startup splash switch is gone from settings')
 
-// The abandoned app-icon switcher is gone: no cards, no state field.
-assert(deepFind(tree, (node) => node.props && node.props.icon && node.props.icon.id !== undefined) === null, 'no app icon cards in settings')
-assert(JSON.parse(storage.get('dsh-hana-appearance:state')).appIcon === undefined, 'app icon flag no longer exists in state')
+// Windows desktop app icon switcher: cards render, the selection goes through
+// the host bridge route and persists in the appearance state.
+const appIconCard = deepFind(tree, (node) => node.props && node.props.icon && node.props.icon.id === 'plum')
+assert(appIconCard !== null && typeof appIconCard.props.onSelect === 'function', 'app icon cards rendered')
+assert(deepFind(tree, (node) => node.type === 'button' && node.props && node.props.children === '恢复默认') !== null, 'app icon restore-default action rendered')
+assert(JSON.parse(storage.get('dsh-hana-appearance:state')).appIcon === 'default', 'app icon defaults to the official icon')
+assert(fetchLog.some(([url, init]) => url === '/api/hana-appearance/app-icon' && init?.method !== 'POST'), 'app icon status fetched at boot')
+appIconCard.props.onSelect()
+await new Promise((resolve) => setTimeout(resolve, 20))
+assert(fetchLog.some(([url, init]) => url === '/api/hana-appearance/app-icon' && init?.method === 'POST'), 'picking an app icon calls the host route')
+assert(JSON.parse(storage.get('dsh-hana-appearance:state')).appIcon === 'plum', 'app icon selection persists in state')
 
 // Persistence route: the debounced PUT should reach the host route.
 await new Promise((resolve) => setTimeout(resolve, 600))
