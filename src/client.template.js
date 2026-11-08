@@ -1150,13 +1150,28 @@ window.__ModuleLoader__.load({
 			].join("\n");
 		}
 
-		/** Write the content typography + chat width variables onto the live DOM. */
+		/* DSH owns the conversation width axis (ui-conversation
+		 * ConversationWidthControls): it reads `dsh.conversation.contentWidth`,
+		 * clamps it to [640, columnWidth - 176] and writes `--dsh-chat-user-width`
+		 * on the conversation body's parent whenever that column resizes. We must
+		 * write the SAME value it would write — overriding `--dsh-chat-content-width`
+		 * directly with our raw pixels made DSH and the plugin take turns
+		 * overwriting each other, which is the width jitter. */
+		const DSH_WIDTH_MIN = 640;
+		const DSH_WIDTH_EDGE_BUDGET = 176;
+
+		/** Same math as DSH's resolveContentWidth(columnWidth, preference). */
+		function resolveDshContentWidth(columnWidth, preference) {
+			const max = Math.max(DSH_WIDTH_MIN, columnWidth - DSH_WIDTH_EDGE_BUDGET);
+			return Math.round(Math.min(Math.max(preference, DSH_WIDTH_MIN), max));
+		}
+
+		/** Write the content typography variables onto the live DOM. Width is DSH's job. */
 		function syncChatDom() {
 			try {
 				const offset = Math.max(-2, Math.min(2, Number(state.fontSizeOffset) || 0));
 				const bodySize = CONTENT_BASE_FONT_SIZE + offset;
 				const secondarySize = CONTENT_BASE_SECONDARY_SIZE + offset;
-				const width = CHAT_WIDTH_PX[state.chatWidth] ?? 720;
 				const root = document.documentElement;
 				root.style.setProperty("--dsh-content-font-size", bodySize + "px");
 				root.style.setProperty("--dsh-content-font-delta", offset + "px");
@@ -1168,14 +1183,13 @@ window.__ModuleLoader__.load({
 					document.body.style.setProperty("--dsh-content-font-size-secondary", secondarySize + "px");
 					document.body.style.setProperty("--dsh-content-font-delta-secondary", offset + "px");
 				}
-				// DSH declares its chat width on the conversation body element, which
-				// inherits over any :root value — mirror the variables down the chain.
 				const slots = document.querySelectorAll?.('[data-slot^="conversation."]') ?? [];
 				for (const slot of slots) {
 					let node = slot;
-					for (let depth = 0; depth < 12 && node !== null && node !== undefined && node !== document.body; depth++) {
-						node.style.setProperty("--dsh-chat-content-width", width + "px");
-						node.style.setProperty("--dsh-composer-card-max-width", (width + 32) + "px");
+					for (let depth = 0; depth < 16 && node !== null && node !== undefined && node !== document.body; depth++) {
+						// Drop inline width overrides left behind by older builds.
+						node.style.removeProperty("--dsh-chat-content-width");
+						node.style.removeProperty("--dsh-composer-card-max-width");
 						node.style.setProperty("--dsh-content-font-size", bodySize + "px");
 						node.style.setProperty("--dsh-content-font-delta", offset + "px");
 						node.style.setProperty("--dsh-content-font-size-secondary", secondarySize + "px");
@@ -1185,6 +1199,27 @@ window.__ModuleLoader__.load({
 				}
 			} catch {
 				// DOM sync is best-effort
+			}
+		}
+
+		/** Mirror the chosen width through DSH's own `--dsh-chat-user-width` variable. */
+		function applyChatWidthToDom(next) {
+			try {
+				const width = CHAT_WIDTH_PX[next.chatWidth] ?? 720;
+				const slots = document.querySelectorAll?.('[data-slot^="conversation."]') ?? [];
+				for (const slot of slots) {
+					let node = slot;
+					for (let depth = 0; depth < 16 && node !== null && node !== undefined && node !== document.body; depth++) {
+						const column = Number.parseFloat(node.style.getPropertyValue("--dsh-conversation-column-width"));
+						if (Number.isFinite(column) && column > 0) {
+							node.style.setProperty("--dsh-chat-user-width", resolveDshContentWidth(column, width) + "px");
+							break;
+						}
+						node = node.parentElement;
+					}
+				}
+			} catch {
+				// best-effort
 			}
 		}
 
@@ -1232,15 +1267,21 @@ window.__ModuleLoader__.load({
 			syncMediaViewer();
 		}
 
-		/** Persist the DSH width preference and mirror all effects onto the DOM. */
+		/** Persist the DSH width preference and mirror it through DSH's own variable. */
+		let appliedChatWidth = null;
 		function applyChatWidth(next) {
 			const width = CHAT_WIDTH_PX[next.chatWidth] ?? 720;
+			const preference = String(width);
+			// Only touch storage/DOM when HanaUI itself changes the width: unrelated
+			// settings repaints must not undo a drag of DSH's own width handles.
+			if (appliedChatWidth === preference) return;
+			appliedChatWidth = preference;
 			try {
-				window.localStorage.setItem(DSH_CONTENT_WIDTH_KEY, String(width));
+				window.localStorage.setItem(DSH_CONTENT_WIDTH_KEY, preference);
 			} catch {
 				// preference write is best-effort
 			}
-			syncChatDom();
+			applyChatWidthToDom(next);
 		}
 
 		/**
@@ -1256,6 +1297,7 @@ window.__ModuleLoader__.load({
 			}
 			styleEl.textContent = buildCss(state);
 			applyChatWidth(state);
+			syncChatDom();
 			const root = document.documentElement;
 			if (state.texture === "off") {
 				root.removeAttribute("data-hana-paper-texture");
