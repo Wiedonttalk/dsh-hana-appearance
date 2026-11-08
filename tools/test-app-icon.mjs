@@ -1,6 +1,9 @@
 // Unit tests for the Windows desktop app-icon planner (host half).
 // Pure functions only: no PowerShell, no file system side effects.
-import { describeShortcutFailure, iconFile, isManagedIcon, planAppIcon } from '../lib/app-icon.js'
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { AppIconSync, describeShortcutFailure, iconFile, isIcoBuffer, isManagedIcon, planAppIcon } from '../lib/app-icon.js'
 
 const assert = (cond, message) => {
   if (!cond) throw new Error('ASSERT FAILED: ' + message)
@@ -96,6 +99,65 @@ const sharedRoots = ['C:\\Users\\Public\\Desktop', 'C:\\ProgramData\\Microsoft\\
 assert(describeShortcutFailure('C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\DeepSeek Harness.lnk', 'Access denied', sharedRoots) === 'shared-denied', 'shared shortcuts report shared-denied')
 assert(describeShortcutFailure('C:\\Users\\Admin\\Desktop\\DeepSeek Harness.lnk', 'Unable to save shortcut', sharedRoots) === 'save-blocked', 'security-blocked writes report save-blocked')
 assert(describeShortcutFailure('C:\\Users\\Admin\\Desktop\\DeepSeek Harness.lnk', 'shortcut-missing', sharedRoots) === 'shortcut-missing', 'other failures pass through')
+
+// 8) ICO header validation used by the custom-icon upload route.
+const icoHeader = (count) => {
+  const buffer = Buffer.alloc(6)
+  buffer.writeUInt16LE(0, 0)
+  buffer.writeUInt16LE(1, 2)
+  buffer.writeUInt16LE(count, 4)
+  return buffer
+}
+assert(isIcoBuffer(icoHeader(1)) === true, 'a valid ICO header is accepted')
+assert(isIcoBuffer(icoHeader(7)) === true, 'multi-size ICO headers are accepted')
+assert(isIcoBuffer(Buffer.from([0, 0, 1, 0, 0, 0])) === false, 'an ICO without images is rejected')
+assert(isIcoBuffer(Buffer.from('not an icon')) === false, 'arbitrary bytes are rejected')
+assert(isIcoBuffer(Buffer.from([0, 0, 5, 0, 1, 0])) === false, 'a non-ICO type is rejected')
+
+// 9) Custom icon lifecycle against a temporary DSH home and a stub scanner.
+{
+  const home = mkdtempSync(join(tmpdir(), 'hana-icon-test-'))
+  const iconDir = join(home, 'bundled')
+  mkdirSync(iconDir)
+  writeFileSync(join(iconDir, 'orchid.ico'), icoHeader(1))
+
+  const io = {
+    async scan() {
+      return []
+    },
+    async write(changes) {
+      return changes.map((change) => ({ path: change.path, ok: true }))
+    },
+  }
+  const windowIcons = []
+  const sync = new AppIconSync(home, { execPath: 'C:\\app\\DeepSeek Harness.exe' }, iconDir, ['orchid'], io, (file) => windowIcons.push(file))
+
+  await sync.reconcile()
+  const uploaded = icoHeader(1)
+  const uploadedResult = await sync.uploadCustom(uploaded)
+  assert(uploadedResult.applied === 'custom', 'uploading a custom icon selects it')
+  assert(existsSync(join(home, 'hana-appearance-app-icon-custom.ico')) === true, 'custom ICO is persisted under DSH_HOME')
+  assert(sync.status().hasCustom === true && typeof sync.status().customVersion === 'string', 'status reports the custom icon and its version')
+  assert(
+    windowIcons.some((file) => file !== null && file.includes('hana-appearance-app-icons')),
+    'window icon helper received a managed copy of the custom ICO'
+  )
+
+  const selectedBuiltin = await sync.setIcon('orchid')
+  assert(selectedBuiltin.applied === 'orchid', 'built-in icons still work after a custom upload')
+  assert(sync.status().hasCustom === true, 'custom icon stays stored while another icon is selected')
+
+  const removed = await sync.removeCustom()
+  assert(removed.applied === 'orchid', 'removing the custom icon keeps the current built-in selection')
+  assert(sync.status().hasCustom === false, 'removed custom icon disappears from the status')
+
+  const rejected = await sync.uploadCustom(Buffer.from('not an icon')).then(
+    () => false,
+    () => true
+  )
+  assert(rejected === true, 'invalid uploads are rejected')
+  rmSync(home, { recursive: true, force: true })
+}
 
 console.log('app-icon planner tests passed')
 process.exit(0)

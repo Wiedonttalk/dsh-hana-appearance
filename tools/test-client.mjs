@@ -334,6 +334,10 @@ appIconCard.props.onSelect()
 await new Promise((resolve) => setTimeout(resolve, 20))
 assert(fetchLog.some(([url, init]) => url === '/api/hana-appearance/app-icon' && init?.method === 'POST'), 'picking an app icon calls the host route')
 assert(JSON.parse(storage.get('dsh-hana-appearance:state')).appIcon === 'plum', 'app icon selection persists in state')
+assert(
+  deepFind(tree, (node) => node.type === 'button' && node.props && node.props.children === '上传自定义图标') !== null,
+  'custom app icon upload button rendered'
+)
 
 // Persistence route: the debounced PUT should reach the host route.
 await new Promise((resolve) => setTimeout(resolve, 600))
